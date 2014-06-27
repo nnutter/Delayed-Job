@@ -1,0 +1,4 @@
+name = "Delayed-Job"
+# badges = ["travis"]
+module_maker="ModuleBuildTiny"
+
