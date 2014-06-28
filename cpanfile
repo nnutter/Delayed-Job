@@ -1,7 +1,11 @@
 requires 'perl', '5.008001';
 
+requires 'Class::AutoloadCAN';
+requires 'Data::Structure::Util';
 requires 'Data::UUID';
 requires 'DBD::Pg';
+requires 'Module::Runtime';
+requires 'Sub::Install';
 
 requires 'DBIx::Class';
 requires 'DBIx::Class::UUIDColumns';
