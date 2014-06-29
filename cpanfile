@@ -4,6 +4,7 @@ requires 'Class::AutoloadCAN';
 requires 'Data::Structure::Util';
 requires 'Data::UUID';
 requires 'DBD::Pg';
+requires 'IPC::System::Simple';
 requires 'Module::Runtime';
 requires 'Sub::Install';
 
