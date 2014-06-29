@@ -4,26 +4,28 @@ use 5.008001;
 use strict;
 use warnings;
 
+use Delayed::Job::Schema qw();
+
 our $VERSION = "0.01";
 
 sub create {
     my $class = shift;
-    return bless { @_ }, $class;
+    my ($handler, $handler_method, @args) = @_;
+
+    my ($handler_class, $handler_data) = Delayed::Job::Schema::Result::Job->serialize_handler($handler);
+    my $handler_args = Delayed::Job::Schema::Result::Job->serialize_args($handler_class, @args);
+
+    my $dbh = Delayed::Job::Schema->connect('dbi:Pg:dbname=delayed', '', '', { AutoCommit => 1 });
+    my $self = $dbh->resultset('Job')->create({
+        handler_class  => $handler_class,
+        handler_data   => $handler_data,
+        handler_method => $handler_method,
+        handler_args   => $handler_args,
+    });
+
+    return $self;
 }
 
-sub run {
-    my $self = shift;
-
-    my $c = $self->{handler_class};
-    my $d = $self->{handler_data};
-    if ($d) {
-        $c = bless $d, $c;
-    }
-    my $m = $self->{handler_method};
-    my @a = @{ $self->{handler_args} };
-
-    return $c->$m(@a);
-}
 
 1;
 __END__
