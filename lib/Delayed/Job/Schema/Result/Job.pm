@@ -25,7 +25,7 @@ __PACKAGE__->set_primary_key('id');
 sub run {
     my $self = shift;
     my $handler = $self->deserialize_handler;
-    my $method  = $self->{handler_method};
+    my $method  = $self->handler_method;
     my @args    = $self->deserialize_args;
     return $handler->$method(@args);
 }
@@ -50,8 +50,8 @@ sub serialize_handler {
 sub deserialize_handler {
     my $self = shift;
 
-    my $handler_class = $self->{handler_class};
-    my $handler_data  = $self->{handler_data};
+    my $handler_class = $self->handler_class;
+    my $handler_data  = $self->handler_data;
 
     if ($handler_class->can('deserialize_handler')) {
         return $handler_class->deserialize_handler($handler_data);
@@ -63,12 +63,20 @@ sub deserialize_handler {
 
 sub serialize_args {
     my $class = shift;
+    my $handler_class = shift;
+    if ($handler_class->can('serialize_args')) {
+        return $handler_class->serialize_args(@_);
+    }
     return encode_json(\@_);
 }
 
 sub deserialize_args {
     my $self = shift;
-    return decode_json($self->{handler_args});
+    my $handler_class = $self->handler_class;
+    if ($handler_class->can('seserialize_args')) {
+        return $handler_class->seserialize_args($self->handler_args);
+    }
+    return decode_json($self->handler_args);
 }
 
 1;

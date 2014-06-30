@@ -15,8 +15,7 @@ sub create {
     my ($handler_class, $handler_data) = Delayed::Job::Schema::Result::Job->serialize_handler($handler);
     my $handler_args = Delayed::Job::Schema::Result::Job->serialize_args($handler_class, @args);
 
-    my $dbh = Delayed::Job::Schema->connect('dbi:Pg:dbname=delayed', '', '', { AutoCommit => 1 });
-    my $self = $dbh->resultset('Job')->create({
+    my $self = _dbh()->resultset('Job')->create({
         handler_class  => $handler_class,
         handler_data   => $handler_data,
         handler_method => $handler_method,
@@ -26,6 +25,17 @@ sub create {
     return $self;
 }
 
+sub find {
+    my $class = shift;
+    my $id = shift;
+    my $self = _dbh()->resultset('Job')->find($id);
+    return $self;
+}
+
+sub _dbh {
+    my $dbh = Delayed::Job::Schema->connect('dbi:Pg:dbname=delayed', '', '', { AutoCommit => 1 });
+    return $dbh;
+}
 
 1;
 __END__

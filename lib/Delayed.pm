@@ -29,19 +29,8 @@ sub CAN {
     my $can = $self->{parent}->can($method);
     return unless $can;
 
-    # dclone or the unbless causes side effects
-    my $data = unbless(dclone($self->{parent}));
-
-    my $handler_class = (ref($self->{parent}) || $self->{parent});
-    my $handler_data = ref($data) ? $data : undef;
-
     return sub {
-        Delayed::Job->create(
-            handler_class  => $handler_class,
-            handler_data   => $handler_data,
-            handler_method => $method,
-            handler_args   => \@arguments,
-        )
+        Delayed::Job->create($self->{parent}, $method, @arguments);
     };
 }
 
