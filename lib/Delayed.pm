@@ -1,10 +1,8 @@
 package Delayed;
 
 use Class::AutoloadCAN; # don't qw()!
-use Data::Structure::Util qw(unbless);
 use Delayed::Job qw();
 use Module::Runtime qw(require_module);
-use Storable qw(dclone);
 use Sub::Install qw(install_sub);
 
 sub import {
