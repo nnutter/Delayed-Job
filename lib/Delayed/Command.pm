@@ -3,7 +3,7 @@ package Delayed::Command;
 use strict;
 use warnings;
 
-use Delayed qw(Delayed::Command);
+use Delayed;
 use IPC::System::Simple qw();
 
 sub create {

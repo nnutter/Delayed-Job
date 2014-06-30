@@ -7,6 +7,7 @@ use Sub::Install qw(install_sub);
 
 sub import {
     shift;
+    @_ = scalar caller unless @_;
     for my $class (@_) {
         require_module $class;
         install_sub({
