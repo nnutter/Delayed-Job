@@ -42,6 +42,15 @@
       },
       "runtime" : {
          "requires" : {
+            "Class::AutoloadCAN" : "0",
+            "DBD::Pg" : "0",
+            "DBIx::Class" : "0",
+            "DBIx::Class::UUIDColumns" : "0",
+            "Data::Structure::Util" : "0",
+            "Data::UUID" : "0",
+            "IPC::System::Simple" : "0",
+            "Module::Runtime" : "0",
+            "Sub::Install" : "0",
             "perl" : "5.008001"
          }
       },
@@ -52,5 +61,16 @@
       }
    },
    "release_status" : "unstable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/nnutter/Delayed-Job/issues"
+      },
+      "homepage" : "https://github.com/nnutter/Delayed-Job",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/nnutter/Delayed-Job.git",
+         "web" : "https://github.com/nnutter/Delayed-Job"
+      }
+   },
    "version" : "0.01"
 }
