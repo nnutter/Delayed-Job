@@ -12,10 +12,9 @@ use Delayed::Job::Schema;
 
 subtest 'retrieved and ran a persisted, delayed command' => sub {
     plan tests => 2;
-    my $dbh = Delayed::Job::Schema->connect('dbi:Pg:dbname=delayed', '', '', { AutoCommit => 1 });
     my $cmd = Delayed::Command->create(qw(echo hello));
     my $job = $cmd->delay->capture;
-    my $got = $dbh->resultset('Job')->find($job->id);
+    my $got = Delayed::Job->find($job->id);
     is(lc($got->id), lc($job->id), 'got job');
     is($got->run, $job->run, 'output matched');
 };
