@@ -5,13 +5,26 @@ use warnings;
 
 use Test::More tests => 2;
 
+use Test::Fatal qw(exception);
+
 use Delayed::Command;
 use Delayed::Job::Schema;
 
-my $dbh = Delayed::Job::Schema->connect('dbi:Pg:dbname=delayed', '', '', { AutoCommit => 1 });
+subtest 'retrieved and ran a persisted, delayed command' => sub {
+    plan tests => 2;
+    my $dbh = Delayed::Job::Schema->connect('dbi:Pg:dbname=delayed', '', '', { AutoCommit => 1 });
+    my $cmd = Delayed::Command->create(qw(echo hello));
+    my $job = $cmd->delay->capture;
+    my $got = $dbh->resultset('Job')->find($job->id);
+    is(lc($got->id), lc($job->id), 'got job');
+    is($got->run, $job->run, 'output matched');
+};
 
-my $cmd = Delayed::Command->create(qw(echo hello));
-my $job = $cmd->delay->capture;
-my $got = $dbh->resultset('Job')->find($job->id);
-is(lc($got->id), lc($job->id), 'got job');
-is($got->run, $job->run, 'output matched');
+subtest 'exception thrown when trying to delay an invalid method' => sub {
+    plan tests => 2;
+    my $cmd = Delayed::Command->create(qw(echo hello));
+    my $m = 'foo';
+    ok(!$cmd->can($m), qq(command cannot '$m'));
+    my $e = exception { $cmd->delay->$m };
+    ok($e, 'got an exception');
+};
