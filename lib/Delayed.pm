@@ -1,5 +1,6 @@
 package Delayed;
 
+use Carp qw(croak);
 use Class::AutoloadCAN; # don't qw()!
 use Delayed::Job qw();
 use Module::Runtime qw(require_module);
@@ -14,7 +15,10 @@ sub import {
             into => $class,
             as   => 'delay',
             code => sub {
-                return bless { handler => $_[0] }, __PACKAGE__;
+                my $handler = shift;
+                my $d = do { \my $s };
+                $$d = $handler;
+                return bless $d, __PACKAGE__;
             },
         });
     }
@@ -25,11 +29,12 @@ sub CAN {
 
     return unless ref($self) && ref($self)->isa('Delayed');
 
-    my $can = $self->{handler}->can($method);
+    my $handler = $$self;
+    my $can = $handler->can($method);
     return unless $can;
 
     return sub {
-        Delayed::Job->create($self->{handler}, $method, @arguments);
+        Delayed::Job->create($handler, $method, @arguments);
     };
 }
 
