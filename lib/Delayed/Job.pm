@@ -10,16 +10,12 @@ our $VERSION = "0.01";
 
 sub create {
     my $class = shift;
-    my ($handler, $handler_method, @args) = @_;
-
-    my ($handler_class, $handler_data) = Delayed::Job::Schema::Result::Job->serialize_handler($handler);
-    my $handler_args = Delayed::Job::Schema::Result::Job->serialize_args($handler_class, @args);
+    my ($handler, $method, @args) = @_;
 
     my $self = _dbh()->resultset('Job')->create({
-        handler_class  => $handler_class,
-        handler_data   => $handler_data,
-        handler_method => $handler_method,
-        handler_args   => $handler_args,
+        handler => $handler,
+        method  => $method,
+        args    => \@args,
     });
 
     return $self;
