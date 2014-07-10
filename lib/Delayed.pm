@@ -15,6 +15,9 @@ sub import {
             into => $class,
             as   => 'delay',
             code => sub {
+                if (@_ != 1) {
+                    croak 'delay should receive one argument';
+                }
                 my $handler = shift;
                 my $d = do { \my $s };
                 $$d = $handler;
