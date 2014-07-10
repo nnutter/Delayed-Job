@@ -3,8 +3,9 @@ CREATE SCHEMA delayed;
 
 CREATE TABLE delayed.job (
     id uuid NOT NULL,
-    handler json,
+    handler_class text,
     method text,
+    handler_data json,
     args json,
     PRIMARY KEY (id)
 );

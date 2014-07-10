@@ -4,7 +4,9 @@ use 5.008001;
 use strict;
 use warnings;
 
+use Data::Structure::Util qw(unbless);
 use Delayed::Job::Schema qw();
+use Storable qw(dclone);
 
 our $VERSION = "0.01";
 
@@ -12,10 +14,17 @@ sub create {
     my $class = shift;
     my ($handler, $method, @args) = @_;
 
+    my $handler_class = ref($handler) || $handler;
+    my $handler_data;
+    if (ref($handler)) {
+        $handler_data = unbless(dclone($handler));
+    }
+
     my $self = _dbh()->resultset('Job')->create({
-        handler => $handler,
-        method  => $method,
-        args    => \@args,
+        handler_class => $handler_class,
+        method        => $method,
+        handler_data  => $handler_data,
+        args          => \@args,
     });
 
     return $self;

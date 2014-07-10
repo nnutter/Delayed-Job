@@ -5,7 +5,6 @@ use warnings;
 
 use parent 'DBIx::Class';
 
-use Data::Structure::Util qw(unbless);
 use JSON qw(encode_json decode_json);
 use Storable qw(dclone);
 
@@ -14,23 +13,30 @@ __PACKAGE__->load_components(qw(UUIDColumns Core InflateColumn));
 __PACKAGE__->table('delayed.job');
 __PACKAGE__->add_columns(qw(
     id
-    handler
+    handler_class
     method
+    handler_data
     args
 ));
 __PACKAGE__->uuid_columns('id');
 __PACKAGE__->set_primary_key('id');
 
-__PACKAGE__->inflate_column('handler', {
+__PACKAGE__->inflate_column('handler_data', {
     inflate => sub {
         my $result_object = pop;
         my $json = shift;
-        return _deserialize_handler($json);
+        if ($result_object->handler_class->can('deserialize_handler')) {
+            return $result_object->handler_class->deserialize_handler($json);
+        }
+        return decode_json($json);
     },
     deflate => sub {
         my $result_object = pop;
-        my $handler = shift;
-        return _serialize_handler($handler);
+        my $handler_data = shift;
+        if ($result_object->handler_class->can('serialize_handler')) {
+            return $result_object->handler_class->serialize_handler($handler_data);
+        }
+        return encode_json($handler_data);
     },
 });
 
@@ -46,11 +52,12 @@ __PACKAGE__->inflate_column('args', {
     },
     deflate => sub {
         my $result_object = pop;
+        my $args = shift;
         my $handler = $result_object->handler;
         if ($handler->can('serialize_args')) {
-            return $handler->serialize_args(\@_);
+            return $handler->serialize_args($args);
         }
-        return encode_json(\@_);
+        return encode_json($args);
     },
 });
 
@@ -62,40 +69,12 @@ sub run {
     return $handler->$method(@args);
 }
 
-sub _serialize_handler {
-    my $handler = shift;
-
-    my $handler_data;
-    if (ref($handler)) {
-        if ($handler->can('serialize_handler')) {
-            $handler_data = $handler->serialize_handler;
-        } else {
-            $handler_data = unbless(dclone($handler));
-        }
+sub handler {
+    my $self = shift;
+    if ($self->handler_data) {
+        return bless dclone($self->handler_data), $self->handler_class;
     }
-    my $handler_class = (ref($handler) || $handler);
-
-    return encode_json({
-        class => $handler_class,
-        data  => $handler_data,
-    });
-}
-
-sub _deserialize_handler {
-    my $json = shift;
-
-    my $data = decode_json($json);
-    my $handler_class = $data->{class};
-    if ($handler_class->can('deserialize_handler')) {
-        return $handler_class->deserialize_handler($data);
-    }
-
-    my $handler_data  = $data->{data};
-    if ($handler_data && ref($handler_data)) {
-        return bless $handler_data, $handler_class;
-    } else {
-        return $handler_class;
-    }
+    return $self->handler_class;
 }
 
 1;
