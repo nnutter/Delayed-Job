@@ -23,37 +23,13 @@ __PACKAGE__->uuid_columns('id');
 __PACKAGE__->set_primary_key('id');
 
 __PACKAGE__->inflate_column('handler_data', {
-    inflate => sub {
-        my ($json, $job) = @_;
-        if ($job->handler_class->can('inflate_handler_data')) {
-            return $job->handler_class->inflate_handler_data($json);
-        }
-        return decode_json($json);
-    },
-    deflate => sub {
-        my ($handler_data, $job) = @_;
-        if ($job->handler_class->can('deflate_handler_data')) {
-            return $job->handler_class->deflate_handler_data($handler_data);
-        }
-        return encode_json($handler_data);
-    },
+    inflate => _delegate_or_default('inflate_handler_data', \&JSON::decode_json),
+    deflate => _delegate_or_default('deflate_handler_data', \&JSON::encode_json),
 });
 
 __PACKAGE__->inflate_column('args', {
-    inflate => sub {
-        my ($json, $job) = @_;
-        if ($job->handler_class->can('inflate_args')) {
-            return $job->handler_class->inflate_args($json);
-        }
-        return decode_json($json);
-    },
-    deflate => sub {
-        my ($args, $job) = @_;
-        if ($job->handler_class->can('deflate_args')) {
-            return $job->handler_class->deflate_args($args);
-        }
-        return encode_json($args);
-    },
+    inflate => _delegate_or_default('inflate_args', \&JSON::decode_json),
+    deflate => _delegate_or_default('deflate_args', \&JSON::encode_json),
 });
 
 sub run {
@@ -71,6 +47,18 @@ sub handler {
         return bless dclone($self->handler_data), $self->handler_class;
     }
     return $self->handler_class;
+}
+
+sub _delegate_or_default {
+    my $delegate_method = shift;
+    my $default_method = shift;
+    return sub {
+        my ($data, $job) = @_;
+        if ($job->handler_class->can($delegate_method)) {
+            return $job->handler_class->$delegate_method($data);
+        }
+        return $default_method->($data);
+    }
 }
 
 1;
