@@ -22,10 +22,11 @@ __PACKAGE__->add_columns(qw(
     queue
     priority
     failed_at
-    attempts,
-    run_at,
-    created_at,
-));
+),
+    attempts   => { default_value => sub { 1 } },
+    run_at     => { default_value => sub { Time::Piece->new() } },
+    created_at => { default_value => sub { Time::Piece->new() } },
+);
 __PACKAGE__->uuid_columns('id');
 __PACKAGE__->set_primary_key('id');
 
@@ -45,6 +46,22 @@ for my $column (qw(run_at failed_at created_at)) {
         # SQL style timestamp
         deflate => sub { $_[0]->strftime('%m/%d/%Y %T.00 %Z') },
     });
+}
+
+sub new {
+    my $class = shift;
+    my $self = $class->next::method(@_);
+    if (defined $self->created_at) {
+        warn 'created_at should not be set manually';
+    }
+    for my $column ($self->result_source->columns) {
+        my $default = $self->result_source->column_info($column)->{default_value};
+        if (!defined($self->$column) && $default) {
+            my $default_value = $default->();
+            $self->$column($default_value);
+        }
+    }
+    return $self;
 }
 
 sub run {
