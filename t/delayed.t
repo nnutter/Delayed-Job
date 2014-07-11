@@ -7,6 +7,7 @@ use Test::More tests => 4;
 
 use File::Spec qw();
 use File::Temp qw();
+use IO::File qw();
 
 my $dir = File::Temp->newdir();
 unshift @INC, $dir->dirname;
