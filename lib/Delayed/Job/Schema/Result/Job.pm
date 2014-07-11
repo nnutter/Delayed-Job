@@ -25,15 +25,15 @@ __PACKAGE__->set_primary_key('id');
 __PACKAGE__->inflate_column('handler_data', {
     inflate => sub {
         my ($json, $job) = @_;
-        if ($job->handler_class->can('deserialize_handler')) {
-            return $job->handler_class->deserialize_handler($json);
+        if ($job->handler_class->can('inflate_handler_data')) {
+            return $job->handler_class->inflate_handler_data($json);
         }
         return decode_json($json);
     },
     deflate => sub {
         my ($handler_data, $job) = @_;
-        if ($job->handler_class->can('serialize_handler')) {
-            return $job->handler_class->serialize_handler($handler_data);
+        if ($job->handler_class->can('deflate_handler_data')) {
+            return $job->handler_class->deflate_handler_data($handler_data);
         }
         return encode_json($handler_data);
     },
@@ -42,15 +42,15 @@ __PACKAGE__->inflate_column('handler_data', {
 __PACKAGE__->inflate_column('args', {
     inflate => sub {
         my ($json, $job) = @_;
-        if ($job->handler_class->can('deserialize_args')) {
-            return $job->handler_class->deserialize_args($json);
+        if ($job->handler_class->can('inflate_args')) {
+            return $job->handler_class->inflate_args($json);
         }
         return decode_json($json);
     },
     deflate => sub {
         my ($args, $job) = @_;
-        if ($job->handler_class->can('serialize_args')) {
-            return $job->handler_class->serialize_args($args);
+        if ($job->handler_class->can('deflate_args')) {
+            return $job->handler_class->deflate_args($args);
         }
         return encode_json($args);
     },
