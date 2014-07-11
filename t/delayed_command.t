@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 3;
+use Test::More tests => 5;
 
 use Test::Fatal qw(exception);
 
@@ -34,4 +34,22 @@ subtest 'exception thrown when trying to delay an invalid method' => sub {
     ok(!$cmd->can($m), qq(command cannot '$m'));
     my $e = exception { $cmd->delay->$m };
     ok($e, 'got an exception');
+};
+
+subtest 'failure state gets set' => sub {
+    plan tests => 4;
+    my $job = Delayed::Command->delay->capture('false');
+    is($job->attempts, 1, 'defaulted to one attempt');
+    ok(!$job->failed_at, 'failed_at is not set');
+    $job->run;
+    is($job->attempts, 0, 'attempts was decremented to zero');
+    ok($job->failed_at, 'failed_at is set');
+};
+
+subtest 'success deleted job' => sub {
+    plan tests => 2;
+    my $job = Delayed::Command->delay->capture(qw(echo hello));
+    ok(Delayed::Job->find($job->id), 'got job');
+    $job->run;
+    ok(!Delayed::Job->find($job->id), 'job is gone');
 };
