@@ -12,9 +12,9 @@ sub create {
     return bless \@command, $class;
 }
 
-sub system { CORE::system(_args(@_)) }
-sub run { IPC::System::Simple::run(_args(@_)) }
-sub capture { IPC::System::Simple::capture(_args(@_)) }
+sub system { CORE::system(_args(@_)) == 0 }
+sub run { IPC::System::Simple::run(_args(@_)) == 0 }
+sub capture { IPC::System::Simple::capture(_args(@_)); $? == 0 }
 
 sub _args {
     my $class = shift;
