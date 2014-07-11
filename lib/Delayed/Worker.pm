@@ -45,10 +45,13 @@ sub start {
 
     my $schema = Delayed::Job->_dbh();
     my $query = {
+        attempts => { '>', 0 },
+    };
+    my $query_opts = {
         columns => [ 'id' ],
         rows => 5,
     };
-    my @jobs = $schema->resultset('Job')->search(undef, $query);
+    my @jobs = $schema->resultset('Job')->search($query, $query_opts);
     my @ids = map { $_->id } @jobs;
     my @pids;
     for my $id (@ids) {
