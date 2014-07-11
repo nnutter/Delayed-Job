@@ -70,13 +70,17 @@ sub run {
     my $method  = $self->method;
     my @args    = @{ $self->args };
 
-    $self->attempts($self->attempts - 1);
     my $rv = eval { $handler->$method(@args) };
     if ($rv) {
         $self->delete;
-    } elsif ($self->attempts <= 0) {
+        return $rv;
+    }
+
+    $self->attempts($self->attempts - 1);
+    if ($self->attempts <= 0) {
         $self->failed_at(Time::Piece->new());
     }
+    $self->update();
     return $rv;
 }
 
