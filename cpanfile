@@ -5,6 +5,7 @@ requires 'Data::Structure::Util';
 requires 'Data::UUID';
 requires 'DBD::Pg';
 requires 'IPC::System::Simple';
+requires 'Log::Dispatch';
 requires 'Module::Runtime';
 requires 'Sub::Install';
 

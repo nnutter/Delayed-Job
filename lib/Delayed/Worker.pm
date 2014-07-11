@@ -1,25 +1,60 @@
 package Delayed::Worker;
 
+# TODO
+# - How should we handle logger (and handler prints) in multi-process?
+
 use strict;
 use warnings;
 
-use Carp qw(croak);
+use Delayed::Logger;
 use Delayed::Job;
 use POSIX qw(WNOHANG);
 use Time::HiRes qw(time usleep);
 
-sub execute {
+sub new {
+    my $class = shift;
+    my %options = @_;
+
+    my $self = bless {}, $class;
+
+    my %logger_opts;
+    if ($options{"log-level"}) {
+        $logger_opts{min_level} = $options{"log-level"};
+    }
+    $self->{logger} = Delayed::Logger->new(%logger_opts);
+
+    if (defined $options{workers}) {
+        $self->{workers} = delete $options{workers};
+    } else {
+        $self->{workers} = 1;
+    }
+
+    if (defined $options{queue}) {
+        $self->{queue} = delete $options{queue};
+    }
+
+    return $self;
+}
+
+sub logger { shift->{logger} }
+sub queue { shift->{queue} }
+sub workers { shift->{workers} }
+
+sub start {
+    my $self = shift;
+
     my $schema = Delayed::Job->_dbh();
-    my @jobs = $schema->resultset('Job')->search(undef, {
+    my $query = {
         columns => [ 'id' ],
         rows => 5,
-    });
+    };
+    my @jobs = $schema->resultset('Job')->search(undef, $query);
     my @ids = map { $_->id } @jobs;
     my @pids;
     for my $id (@ids) {
         my $pid = fork();
         if (!defined($pid)) {
-            croak 'failed to fork';
+            $self->logger->fatal('failed to fork');
         }
 
         if ($pid == 0) {
@@ -30,17 +65,17 @@ sub execute {
             });;
             exit(0);
         } else {
-            printf STDERR "PID %d spawned\n", $pid;
+            $self->logger->debugf("PID %d spawned\n", $pid);
             push @pids, $pid;
         }
 
-        while (@pids == 2) {
+        while (@pids == $self->workers) {
             usleep 100_000;
             my $pid = shift @pids;
             unless (waitpid($pid, WNOHANG) == $pid) {
                 push @pids, $pid;
             } else {
-                printf STDERR "PID %d returned\n", $pid;
+                $self->logger->debugf("PID %d returned\n", $pid);
             }
         }
     }
@@ -50,7 +85,7 @@ sub execute {
         unless (waitpid($pid, WNOHANG) == $pid) {
             push @pids, $pid;
         } else {
-            printf STDERR "PID %d returned\n", $pid;
+            $self->logger->debugf("PID %d returned\n", $pid);
         }
     }
 }

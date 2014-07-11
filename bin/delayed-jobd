@@ -1,0 +1,29 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Delayed::Worker;
+use Getopt::Long qw();
+
+sub parse_opts {
+    my @args = @_;
+    my $parser = Getopt::Long::Parser->new();
+    my %options;
+    my @option_spec = (qw(
+        queue=s
+        log-level=s
+        workers=i
+    ));
+    $parser->getoptionsfromarray(\@args, \%options, @option_spec);
+    return %options;
+}
+
+sub main {
+    my @args = @_;
+    my %options = parse_opts(@_);
+    my $daemon = Delayed::Worker->new(%options);
+    $daemon->start();
+}
+
+main(@ARGV);
