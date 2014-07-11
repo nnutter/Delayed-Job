@@ -24,18 +24,16 @@ __PACKAGE__->set_primary_key('id');
 
 __PACKAGE__->inflate_column('handler_data', {
     inflate => sub {
-        my $result_object = pop;
-        my $json = shift;
-        if ($result_object->handler_class->can('deserialize_handler')) {
-            return $result_object->handler_class->deserialize_handler($json);
+        my ($json, $job) = @_;
+        if ($job->handler_class->can('deserialize_handler')) {
+            return $job->handler_class->deserialize_handler($json);
         }
         return decode_json($json);
     },
     deflate => sub {
-        my $result_object = pop;
-        my $handler_data = shift;
-        if ($result_object->handler_class->can('serialize_handler')) {
-            return $result_object->handler_class->serialize_handler($handler_data);
+        my ($handler_data, $job) = @_;
+        if ($job->handler_class->can('serialize_handler')) {
+            return $job->handler_class->serialize_handler($handler_data);
         }
         return encode_json($handler_data);
     },
@@ -43,20 +41,16 @@ __PACKAGE__->inflate_column('handler_data', {
 
 __PACKAGE__->inflate_column('args', {
     inflate => sub {
-        my $result_object = pop;
-        my $json = shift;
-        my $handler = $result_object->handler;
-        if ($handler->can('deserialize_args')) {
-            return $handler->deserialize_args($json);
+        my ($json, $job) = @_;
+        if ($job->handler_class->can('deserialize_args')) {
+            return $job->handler_class->deserialize_args($json);
         }
         return decode_json($json);
     },
     deflate => sub {
-        my $result_object = pop;
-        my $args = shift;
-        my $handler = $result_object->handler;
-        if ($handler->can('serialize_args')) {
-            return $handler->serialize_args($args);
+        my ($args, $job) = @_;
+        if ($job->handler_class->can('serialize_args')) {
+            return $job->handler_class->serialize_args($args);
         }
         return encode_json($args);
     },
