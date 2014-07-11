@@ -69,6 +69,7 @@ sub run {
     my $handler = $self->handler;
     my $method  = $self->method;
     my @args    = @{ $self->args };
+    $self->attempts($self->attempts - 1);
     return $handler->$method(@args);
 }
 
