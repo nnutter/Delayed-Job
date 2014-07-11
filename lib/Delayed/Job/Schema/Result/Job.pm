@@ -6,6 +6,7 @@ use warnings;
 use parent 'DBIx::Class';
 
 use JSON qw(encode_json decode_json);
+use Module::Runtime qw(require_module);
 use Storable qw(dclone);
 
 __PACKAGE__->load_components(qw(UUIDColumns Core InflateColumn));
@@ -71,6 +72,7 @@ sub run {
 
 sub handler {
     my $self = shift;
+    require_module $self->handler_class;
     if ($self->handler_data) {
         return bless dclone($self->handler_data), $self->handler_class;
     }
