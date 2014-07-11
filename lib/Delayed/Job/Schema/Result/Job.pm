@@ -8,6 +8,7 @@ use parent 'DBIx::Class';
 use JSON qw(encode_json decode_json);
 use Module::Runtime qw(require_module);
 use Storable qw(dclone);
+use Time::Piece qw();
 
 __PACKAGE__->load_components(qw(UUIDColumns Core InflateColumn));
 
@@ -37,6 +38,14 @@ __PACKAGE__->inflate_column('args', {
     inflate => _delegate_or_default('inflate_args', \&JSON::decode_json),
     deflate => _delegate_or_default('deflate_args', \&JSON::encode_json),
 });
+
+for my $column (qw(run_at failed_at created_at)) {
+    __PACKAGE__->inflate_column($column, {
+        inflate => sub { Time::Piece->new($_[0]) },
+        # SQL style timestamp
+        deflate => sub { $_[0]->strftime('%m/%d/%Y %T.00 %Z') },
+    });
+}
 
 sub run {
     my $self = shift;
