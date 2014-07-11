@@ -7,6 +7,12 @@ CREATE TABLE delayed.job (
     method text,
     handler_data json,
     args json,
+    queue text,
+    priority int4,
+    attempts int4,
+    run_at timestamp with time zone,
+    failed_at timestamp with time zone,
+    created_at timestamp with time zone,
     PRIMARY KEY (id)
 );
 

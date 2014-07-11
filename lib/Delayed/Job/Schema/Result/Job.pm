@@ -18,6 +18,12 @@ __PACKAGE__->add_columns(qw(
     method
     handler_data
     args
+    queue
+    priority
+    failed_at
+    attempts,
+    run_at,
+    created_at,
 ));
 __PACKAGE__->uuid_columns('id');
 __PACKAGE__->set_primary_key('id');
