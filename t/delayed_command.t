@@ -44,6 +44,7 @@ subtest 'failure state gets set' => sub {
     $job->run;
     is($job->attempts, 0, 'attempts was decremented to zero');
     ok($job->failed_at, 'failed_at is set');
+    $job->delete;
 };
 
 subtest 'success deleted job' => sub {
